@@ -764,3 +764,25 @@ def test_pull_external_dvc_imports(tmp_dir, dvc, scm, erepo_dir):
 
     assert (tmp_dir / "new_dir").exists()
     assert (tmp_dir / "new_dir" / "bar").read_text() == "bar"
+
+
+def test_trust_remote_checksums(tmp_dir, tmp_path_factory, erepo_dir, mocker):
+    with erepo_dir.chdir():
+        erepo_dir.dvc_gen({"file": "file content"}, commit="add dir")
+        erepo_dir.dvc.push()
+
+    from dvc.scm import Git
+
+    Git.clone(fspath(erepo_dir), fspath(tmp_dir))
+
+    from dvc.repo import Repo
+
+    repo = Repo(fspath(tmp_dir))
+
+    import dvc
+
+    md5_spy = mocker.spy(dvc.remote.local.RemoteLOCAL, "get_file_checksum")
+
+    repo.pull()
+
+    assert md5_spy.call_count == 0
