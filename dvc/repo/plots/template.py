@@ -32,11 +32,11 @@ class Template:
     DEFAULT_CONTENT = None
     DEFAULT_NAME = None
 
-    def __init__(self, content=None, name=None):
+    def __init__(self, content=None, path=None):
         self.content = self.DEFAULT_CONTENT if content is None else content
-        self.name = name or self.DEFAULT_NAME
-        assert self.content and self.name
-        self.filename = self.name + self.EXTENSION
+        if path and not path.endswith(self.EXTENSION):
+            path += self.EXTENSION
+        self.path = path
 
     def render(self, data, props=None):
         props = props or {}
@@ -44,7 +44,7 @@ class Template:
         if self._anchor_str("data") not in self.content:
             anchor = self.anchor("data")
             raise BadTemplateError(
-                f"Template '{self.filename}' is not using '{anchor}' anchor"
+                f"Template '{self.path}' is not using '{anchor}' anchor"
             )
 
         if props.get("x"):
@@ -93,6 +93,23 @@ class Template:
     def _check_field_exists(data, field):
         if not any(field in row for row in data):
             raise NoFieldInDataError(field)
+
+    def dump(self):
+        with open(self.path, "w") as fd:
+            json.dump(
+                self.content,
+                fd,
+                indent=self.INDENT,
+                separators=self.SEPARATORS,
+            )
+            fd.write("\n")
+
+    @staticmethod
+    def load(path):
+        assert os.path.exists(path)
+        with open(path, "r") as fd:
+            content = fd.read()
+        return Template(content, path)
 
 
 class DefaultLinearTemplate(Template):
@@ -253,23 +270,10 @@ class PlotTemplates:
         if not os.path.exists(self.templates_dir):
             makedirs(self.templates_dir, exist_ok=True)
             for t in self.TEMPLATES:
-                self.dump(t())
-
-    def dump(self, template):
-        path = os.path.join(self.templates_dir, template.filename)
-        with open(path, "w") as fd:
-            json.dump(
-                template.content,
-                fd,
-                indent=template.INDENT,
-                separators=template.SEPARATORS,
-            )
-            fd.write("\n")
+                path = os.path.join(
+                    self.templates_dir, t.DEFAULT_NAME + t.EXTENSION
+                )
+                t(path=path).dump()
 
     def load(self, name):
-        path = self.get_template(name)
-
-        with open(path) as fd:
-            content = fd.read()
-
-        return Template(content, name=name)
+        return Template.load(self.get_template(name))

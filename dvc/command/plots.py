@@ -3,8 +3,8 @@ import logging
 import os
 
 from dvc.command import completion
-from dvc.command.base import CmdBase, append_doc_link, fix_subparsers
-from dvc.exceptions import DvcException
+from dvc.command.base import CmdBaseNoRepo, append_doc_link, fix_subparsers
+from dvc.exceptions import DvcException, NotDvcRepoError
 from dvc.schema import PLOT_PROPS
 from dvc.utils import format_link
 
@@ -30,7 +30,15 @@ DIV_HTML = """<div id = "{id}"></div>
 </script>"""
 
 
-class CmdPlots(CmdBase):
+class CmdPlots(CmdBaseNoRepo):
+    def _plots(self):
+        from dvc.repo import Repo
+
+        try:
+            return Repo().plots
+        except NotDvcRepoError:
+            raise NotImplementedError
+
     def _func(self, *args, **kwargs):
         raise NotImplementedError
 

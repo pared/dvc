@@ -1,8 +1,3 @@
-from funcy import group_by
-
-from dvc.tree.local import LocalTree
-
-
 def brancher(  # noqa: E302
     self, revs=None, all_branches=False, all_tags=False, all_commits=False
 ):
@@ -20,39 +15,20 @@ def brancher(  # noqa: E302
             - empty string it there is no branches to iterate over
             - "workspace" if there are uncommitted changes in the SCM repo
     """
-    if not any([revs, all_branches, all_tags, all_commits]):
-        yield ""
-        return
-
     saved_tree = self.tree
-    revs = revs.copy() if revs else []
-
-    scm = self.scm
-
-    self.tree = LocalTree(self, {"url": self.root_dir}, use_dvcignore=True)
-    yield "workspace"
-
-    if revs and "workspace" in revs:
-        revs.remove("workspace")
-
-    if all_commits:
-        revs = scm.list_all_commits()
-    else:
-        if all_branches:
-            revs.extend(scm.list_branches())
-
-        if all_tags:
-            revs.extend(scm.list_tags())
 
     try:
-        if revs:
-            for sha, names in group_by(scm.resolve_rev, revs).items():
-                self.tree = scm.get_tree(
-                    sha, use_dvcignore=True, dvcignore_root=self.root_dir
-                )
-                # ignore revs that don't contain repo root
-                # (i.e. revs from before a subdir=True repo was init'ed)
-                if self.tree.exists(self.root_dir):
-                    yield ", ".join(names)
+        for name, tree in self.scm.brancher(
+            self.root_dir,
+            revs=revs,
+            all_branches=all_branches,
+            all_tags=all_tags,
+            all_commits=all_commits,
+        ):
+            self.tree = tree
+            # ignore revs that don't contain repo root
+            # (i.e. revs from before a subdir=True repo was init'ed)
+            if self.tree.exists(self.root_dir) or name == "workspace":
+                yield name
     finally:
         self.tree = saved_tree

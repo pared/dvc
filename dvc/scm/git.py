@@ -5,7 +5,7 @@ import os
 import shlex
 from functools import partial
 
-from funcy import cached_property
+from funcy import cached_property, group_by
 from pathspec.patterns import GitWildMatchPattern
 
 from dvc.exceptions import GitHookAlreadyExistsError
@@ -17,6 +17,7 @@ from dvc.scm.base import (
     RevError,
     SCMError,
 )
+from dvc.tree import LocalTree
 from dvc.utils import fix_env, is_binary, relpath
 from dvc.utils.fs import path_isin
 from dvc.utils.serialize import modify_yaml
@@ -460,3 +461,38 @@ class Git(Base):
     @property
     def no_commits(self):
         return not self.list_all_commits()
+
+    def brancher(
+        self,
+        root_dir,
+        revs=None,
+        all_branches=False,
+        all_tags=False,
+        all_commits=False,
+    ):
+        # if not any([revs, all_branches, all_tags, all_commits]):
+        #     return "", None
+
+        yield (
+            "workspace",
+            LocalTree(None, {"url": root_dir}, use_dvcignore=True),
+        )
+
+        revs = revs.copy() if revs else []
+        if revs and "workspace" in revs:
+            revs.remove("workspace")
+
+        if all_commits:
+            revs = self.list_all_commits()
+        else:
+            if all_branches:
+                revs.extend(self.list_branches())
+
+            if all_tags:
+                revs.extend(self.list_tags())
+
+        if revs:
+            for sha, names in group_by(self.resolve_rev, revs).items():
+                yield ", ".join(names), self.get_tree(
+                    sha, use_dvcignore=True, dvcignore_root=self.root_dir
+                )

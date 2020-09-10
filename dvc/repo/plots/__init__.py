@@ -1,4 +1,5 @@
 import logging
+import os
 
 from funcy import first, project
 
@@ -23,7 +24,8 @@ class PropsNotFoundError(DvcException):
 
 
 class Plots:
-    def __init__(self, repo):
+    def __init__(self, repo, path=None):
+        self.path = path or os.getcwd()
         self.repo = repo
 
     def collect(self, targets=None, revs=None):

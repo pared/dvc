@@ -8,6 +8,7 @@ from collections import OrderedDict
 import pytest
 from funcy import first
 
+from dvc.main import main
 from dvc.repo.plots.data import (
     JSONPlotData,
     NoMetricInHistoryError,
@@ -602,3 +603,38 @@ def test_multiple_plots(tmp_dir, scm, dvc, run_copy_metrics):
     )
 
     assert len(dvc.plots.show().keys()) == 2
+
+
+def test_plot_show_no_repo(tmp_dir, custom_template):
+    metric = [{"val": 2}, {"val": 3}]
+    _write_json(tmp_dir, metric, "metric.json")
+
+    ret = main(
+        [
+            "plots",
+            "show",
+            "--targets",
+            "metric.json",
+            "--templates",
+            "custom_template.json",
+            "--show-vega",
+        ]
+    )
+    assert ret == 0
+    plot_string = (tmp_dir / "metric.json").read_text()
+
+    plot_json = json.loads(plot_string)
+    assert plot_json["data"]["values"] == [
+        {"val": 2, PlotData.INDEX_FIELD: 0, "rev": "workspace"},
+        {"val": 3, PlotData.INDEX_FIELD: 1, "rev": "workspace"},
+    ]
+    assert plot_json["encoding"]["x"]["field"] == PlotData.INDEX_FIELD
+    assert plot_json["encoding"]["y"]["field"] == "val"
+
+
+def test_plot_show_no_repo_no_template(tmp_dir):
+    pass
+
+
+def test_plot_show_no_repo_no_targets(tmp_dir):
+    pass

@@ -1,12 +1,12 @@
-import shutil
+import os
 
 import pytest
+
+from dvc.repo.plots.template import DefaultLinearTemplate
 
 
 @pytest.fixture()
 def custom_template(tmp_dir, dvc):
     template = tmp_dir / "custom_template.json"
-    shutil.copy(
-        tmp_dir / ".dvc" / "plots" / "default.json", template,
-    )
+    DefaultLinearTemplate(path=os.fspath(template)).dump()
     return template
