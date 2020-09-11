@@ -1,3 +1,6 @@
+from dvc.tree import LocalTree
+
+
 def brancher(  # noqa: E302
     self, revs=None, all_branches=False, all_tags=False, all_commits=False
 ):
@@ -17,6 +20,13 @@ def brancher(  # noqa: E302
     """
     saved_tree = self.tree
 
+    self.tree = LocalTree(self, {"url": self.root_dir}, use_dvcignore=True)
+    yield "workspace"
+
+    revs = revs.copy() if revs else []
+    if revs and "workspace" in revs:
+        revs.remove("workspace")
+
     try:
         for name, tree in self.scm.brancher(
             self.root_dir,
@@ -28,7 +38,7 @@ def brancher(  # noqa: E302
             self.tree = tree
             # ignore revs that don't contain repo root
             # (i.e. revs from before a subdir=True repo was init'ed)
-            if self.tree.exists(self.root_dir) or name == "workspace":
+            if self.tree.exists(self.root_dir):
                 yield name
     finally:
         self.tree = saved_tree

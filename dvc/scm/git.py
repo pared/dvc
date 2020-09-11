@@ -17,7 +17,6 @@ from dvc.scm.base import (
     RevError,
     SCMError,
 )
-from dvc.tree import LocalTree
 from dvc.utils import fix_env, is_binary, relpath
 from dvc.utils.fs import path_isin
 from dvc.utils.serialize import modify_yaml
@@ -470,17 +469,7 @@ class Git(Base):
         all_tags=False,
         all_commits=False,
     ):
-        # if not any([revs, all_branches, all_tags, all_commits]):
-        #     return "", None
-
-        yield (
-            "workspace",
-            LocalTree(None, {"url": root_dir}, use_dvcignore=True),
-        )
-
         revs = revs.copy() if revs else []
-        if revs and "workspace" in revs:
-            revs.remove("workspace")
 
         if all_commits:
             revs = self.list_all_commits()
