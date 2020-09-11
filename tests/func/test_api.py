@@ -9,14 +9,14 @@ from dvc.utils.fs import remove
 from tests.unit.tree.test_repo import make_subrepo
 
 cloud_names = [
-    "s3",
-    "gs",
-    "azure",
-    "gdrive",
-    "oss",
-    "ssh",
+    # "s3",
+    # "gs",
+    # "azure",
+    # "gdrive",
+    # "oss",
+    # "ssh",
     "hdfs",
-    "http",
+    # "http",
 ]
 clouds = [pytest.lazy_fixture(cloud) for cloud in cloud_names]
 all_clouds = [pytest.lazy_fixture("local_cloud")] + clouds

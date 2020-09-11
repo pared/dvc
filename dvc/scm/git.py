@@ -494,5 +494,5 @@ class Git(Base):
         if revs:
             for sha, names in group_by(self.resolve_rev, revs).items():
                 yield ", ".join(names), self.get_tree(
-                    sha, use_dvcignore=True, dvcignore_root=self.root_dir
+                    sha, use_dvcignore=True, dvcignore_root=root_dir
                 )
