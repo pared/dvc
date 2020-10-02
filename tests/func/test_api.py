@@ -1,11 +1,11 @@
+import logging
 import os
-import platform
 
 import pytest
 from funcy import first, get_in
 
 from dvc import api
-from dvc.exceptions import DvcException, FileMissingError, OutputNotFoundError
+from dvc.exceptions import FileMissingError, OutputNotFoundError
 from dvc.path_info import URLInfo
 from dvc.utils.fs import remove
 from tests.unit.tree.test_repo import make_subrepo
@@ -59,32 +59,27 @@ def test_open(tmp_dir, dvc, remote):
         assert fd.read() == "foo-text"
 
 
+logger = logging.getLogger(__name__)
+
+
 @pytest.mark.parametrize(
     "cloud",
     [
-        *[
-            pytest.lazy_fixture(cloud)
-            for cloud in [
-                "real_s3",  # NOTE: moto's s3 fails in some tests
-                "gs",
-                "azure",
-                "gdrive",
-                "oss",
-                "http",
-                "hdfs",
-            ]
-        ],
-        pytest.param(
-            pytest.lazy_fixture("ssh"),
-            marks=pytest.mark.xfail(
-                raises=DvcException,
-                condition=platform.system() == "Windows",
-                reason="https://github.com/iterative/dvc/issues/4418",
-            ),
-        ),
+        pytest.lazy_fixture(cloud)
+        for cloud in [
+            "real_s3",  # NOTE: moto's s3 fails in some tests
+            "gs",
+            "azure",
+            "gdrive",
+            "oss",
+            "http",
+            "hdfs",
+            "ssh",
+        ]
     ],
 )
-def test_open_external(erepo_dir, cloud):
+def test_open_external(tmp_dir, erepo_dir, cloud):
+    logger.error(f"########## {os.getcwd()}")
     erepo_dir.add_remote(config=cloud.config)
 
     with erepo_dir.chdir():
