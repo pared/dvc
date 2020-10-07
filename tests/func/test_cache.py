@@ -1,5 +1,4 @@
 import os
-import platform
 import stat
 
 import configobj
@@ -9,6 +8,7 @@ from dvc.cache import Cache
 from dvc.cache.base import DirCacheError
 from dvc.hash_info import HashInfo
 from dvc.main import main
+from dvc.system import System
 from dvc.utils import relpath
 from tests.basic_env import TestDir, TestDvc
 
@@ -151,23 +151,34 @@ class TestCacheLinkType(TestDvc):
         self.assertEqual(ret, 0)
 
 
+def test_cmd_cache_dir(tmp_dir, dvc, caplog):
+    assert main(["cache", "dir"]) == 0
+    assert dvc.cache.local.cache_path in caplog.text
+
+
+def test_cmd_cache_dir_abs_path(tmp_dir, dvc, caplog, make_tmp_dir):
+    dname = str(make_tmp_dir("cache"))
+    assert main(["cache", "dir", dname]) == 0
+
+    config = configobj.ConfigObj(dvc.config.files["repo"])
+    assert config["cache"]["dir"] == dname.replace("\\", "/")
+
+
+def test_cache_relative_link(tmp_dir, make_tmp_dir, dvc):
+    tmp = make_tmp_dir("cache")
+    link = os.path.join(os.path.dirname(tmp), "link")
+    cache = os.path.join(link, "cache")
+
+    System.symlink(str(tmp), link)
+    dname = relpath(cache)
+
+    assert main(["cache", "dir", dname]) == 0
+
+    tmp_dir.gen("foo", "foo content")
+    assert main(["add", "foo"]) == 0
+
+
 class TestCmdCacheDir(TestDvc):
-    def test(self):
-        ret = main(["cache", "dir"])
-        self.assertEqual(ret, 0)
-
-    def test_abs_path(self):
-        dname = os.path.join(os.path.dirname(self._root_dir), "dir")
-        ret = main(["cache", "dir", dname])
-        self.assertEqual(ret, 0)
-
-        config = configobj.ConfigObj(self.dvc.config.files["repo"])
-        self.assertEqual(config["cache"]["dir"], dname.replace("\\", "/"))
-
-    @pytest.mark.skipif(
-        platform.system() == "Darwin",
-        reason="https://github.com/iterative/dvc/issues/4418",
-    )
     def test_relative_path(self):
         tmpdir = self.mkdtemp()
         dname = relpath(tmpdir)
