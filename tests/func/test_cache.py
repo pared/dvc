@@ -1,5 +1,4 @@
 import os
-import platform
 import stat
 
 import configobj
@@ -151,25 +150,22 @@ class TestCacheLinkType(TestDvc):
         self.assertEqual(ret, 0)
 
 
+def test_cmd_cache_dir(tmp_dir, dvc, caplog):
+    assert main(["cache", "dir"]) == 0
+    assert dvc.cache.local.cache_path in caplog.text
+
+
+def test_cmd_cache_dir_abs_path(tmp_dir, dvc, caplog, make_tmp_dir):
+    dname = str(make_tmp_dir("cache"))
+    assert main(["cache", "dir", dname]) == 0
+
+    config = configobj.ConfigObj(dvc.config.files["repo"])
+    assert config["cache"]["dir"] == dname.replace("\\", "/")
+
+
 class TestCmdCacheDir(TestDvc):
-    def test(self):
-        ret = main(["cache", "dir"])
-        self.assertEqual(ret, 0)
-
-    def test_abs_path(self):
-        dname = os.path.join(os.path.dirname(self._root_dir), "dir")
-        ret = main(["cache", "dir", dname])
-        self.assertEqual(ret, 0)
-
-        config = configobj.ConfigObj(self.dvc.config.files["repo"])
-        self.assertEqual(config["cache"]["dir"], dname.replace("\\", "/"))
-
-    @pytest.mark.skipif(
-        platform.system() == "Darwin",
-        reason="https://github.com/iterative/dvc/issues/4418",
-    )
     def test_relative_path(self):
-        tmpdir = self.mkdtemp()
+        tmpdir = os.path.realpath(self.mkdtemp())
         dname = relpath(tmpdir)
         ret = main(["cache", "dir", dname])
         self.assertEqual(ret, 0)
