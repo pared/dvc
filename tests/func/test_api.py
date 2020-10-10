@@ -80,6 +80,7 @@ logger = logging.getLogger(__name__)
 )
 def test_open_external(tmp_dir, erepo_dir, cloud):
     logger.error(f"########## {os.getcwd()}")
+    assert 0
     erepo_dir.add_remote(config=cloud.config)
 
     with erepo_dir.chdir():
