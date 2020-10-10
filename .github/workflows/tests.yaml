@@ -51,4 +51,4 @@ jobs:
         git config --global user.email "dvctester@example.com"
         git config --global user.name "DVC Tester"
     - name: run tests
-      run: py.test -n 1 "tests/func/test_api.py::test_open_external[ssh]" 
+      run: py.test -v -n 1 "tests/func/test_api.py::test_open_external[ssh]" 
