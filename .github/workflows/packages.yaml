@@ -2,9 +2,7 @@ name: Build packages
 on:
   push:
     branches:
-    - master
-  release:
-    types: [released]
+    - fix_packaging_local
 jobs:
   linux:
     runs-on: ubuntu-16.04
