@@ -5,6 +5,10 @@ on:
     - test_package
 #  release:
 #    types: [released]
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   linux:
     runs-on: ubuntu-16.04
