@@ -86,7 +86,7 @@ jobs:
     - name: set up foo
       run: echo "FOO=BAR" >> $GITHUB_ENV
     - name: get foo
-      run echo $FOO
+      run: echo $FOO
     - name: test step
       run: echo something
       env:
