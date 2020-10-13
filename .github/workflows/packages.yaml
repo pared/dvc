@@ -76,7 +76,7 @@ jobs:
     - name: set up github token
       run: echo "GITHUB_TOKEN2=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
     - name: test step
-      run: echo something
+      run: type $GITHUB_ENV
     - name: Publish
       if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1.0.1
