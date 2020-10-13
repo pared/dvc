@@ -76,8 +76,6 @@ jobs:
     - name: set up github token
       run: echo "GITHUB_TOKEN2=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
     - name: test step
-      env:
-        GITHUB_TOKEN: {{ secrets.GITHUB_TOKEN }}
       run: echo something
     - name: Publish
       if: github.event_name == 'release'
