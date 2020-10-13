@@ -6,8 +6,8 @@ on:
 #  release:
 #    types: [released]
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#env:
+#  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   linux:
@@ -83,6 +83,10 @@ jobs:
 #      shell: cmd
     - name: set up github token
       run: echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}">>$GITHUB_ENV
+    - name: set up foo
+      run: echo "FOO=BAR" >> $GITHUB_ENV
+    - name: get foo
+      run echo $FOO
     - name: test step
       run: echo something
       env:
