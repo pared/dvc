@@ -8,6 +8,7 @@ from dvc.cache import Cache
 from dvc.cache.base import DirCacheError
 from dvc.hash_info import HashInfo
 from dvc.main import main
+from dvc.system import System
 from dvc.utils import relpath
 from tests.basic_env import TestDir, TestDvc
 
@@ -163,9 +164,23 @@ def test_cmd_cache_dir_abs_path(tmp_dir, dvc, caplog, make_tmp_dir):
     assert config["cache"]["dir"] == dname.replace("\\", "/")
 
 
+def test_cache_relative_link(tmp_dir, make_tmp_dir, dvc):
+    tmp = make_tmp_dir("cache")
+    link = os.path.join(os.path.dirname(tmp), "link")
+    cache = os.path.join(link, "cache")
+
+    System.symlink(str(tmp), link)
+    dname = relpath(cache)
+
+    assert main(["cache", "dir", dname]) == 0
+
+    tmp_dir.gen("foo", "foo content")
+    assert main(["add", "foo"]) == 0
+
+
 class TestCmdCacheDir(TestDvc):
     def test_relative_path(self):
-        tmpdir = os.path.realpath(self.mkdtemp())
+        tmpdir = self.mkdtemp()
         dname = relpath(tmpdir)
         ret = main(["cache", "dir", dname])
         self.assertEqual(ret, 0)
