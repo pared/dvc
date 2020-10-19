@@ -1,17 +1,21 @@
 name: Tests build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - 4418_test_cache_test_2
 
 env:
   DVC_TEST: "true"
   HOMEBREW_NO_AUTO_UPDATE: 1
   SHELL: /bin/bash
+  GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2.3.2
     - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
@@ -28,10 +32,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-18.04, windows-2019, macos-10.15]
-        pyv: [3.6, 3.7, 3.8]
+        pyv: ["3.7"]
         exclude:
           - os: windows-2019
-            pyv: 3.8
+          - os: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2.3.2
     - name: Set up Python
@@ -46,12 +50,10 @@ jobs:
         git config --global user.email "dvctester@example.com"
         git config --global user.name "DVC Tester"
     - name: run tests
-      run: python -m tests --cov-report=xml
+      run: python -m tests tests/func/test_cache.py::TestCmdCacheDir::test_relative_path
     - name: upload coverage report
       if: github.event.name == 'push'
       uses: codecov/codecov-action@v1.0.13
       with:
         file: ./coverage.xml
         fail_ci_if_error: true
-
-
