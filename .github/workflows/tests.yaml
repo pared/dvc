@@ -1,6 +1,9 @@
 name: Tests build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - 4418_test_update_import_test
 
 env:
   DVC_TEST: "true"
@@ -31,12 +34,6 @@ jobs:
         git config --global user.email "dvctester@example.com"
         git config --global user.name "DVC Tester"
     - name: run tests
-      run: python -m tests -n=2 --cov-report=xml
-    - name: upload coverage report
-      if: github.event.name == 'push'
-      uses: codecov/codecov-action@v1.0.13
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
+      run: python -m tests -n=1 "tests/func/test_update.py::test_update_import[False]"
 
 
