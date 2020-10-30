@@ -4,7 +4,8 @@ from dvc.dvcfile import PIPELINE_LOCK
 from dvc.repo.plots import PropsNotFoundError
 from dvc.repo.plots.template import TemplateNotFoundError
 from dvc.utils import relpath
-from tests.func.metrics.utils import _write_json
+
+from .test_plots import _write_json
 
 
 def test_plots_modify_existing_template(

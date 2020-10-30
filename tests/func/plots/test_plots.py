@@ -1,3 +1,4 @@
+import csv
 import json
 import logging
 import os
@@ -5,6 +6,7 @@ import shutil
 from collections import OrderedDict
 
 import pytest
+from funcy import first
 
 from dvc.repo import Repo
 from dvc.repo.plots.data import (
@@ -21,7 +23,25 @@ from dvc.repo.plots.template import (
 )
 from dvc.utils.fs import remove
 from dvc.utils.serialize import dump_yaml, dumps_yaml
-from tests.func.metrics.utils import _write_csv, _write_json
+
+
+def _write_csv(metric, filename, header=True):
+    with open(filename, "w", newline="") as csvobj:
+        if header:
+            writer = csv.DictWriter(
+                csvobj, fieldnames=list(first(metric).keys())
+            )
+            writer.writeheader()
+            writer.writerows(metric)
+        else:
+            writer = csv.writer(csvobj)
+            for d in metric:
+                assert len(d) == 1
+                writer.writerow(list(d.values()))
+
+
+def _write_json(tmp_dir, metric, filename):
+    tmp_dir.gen(filename, json.dumps(metric, sort_keys=True))
 
 
 def test_plot_csv_one_column(tmp_dir, scm, dvc, run_copy_metrics):
