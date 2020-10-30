@@ -94,6 +94,7 @@ class Plots:
 
         if templates is None:
             templates = self.templates
+
         return self.render(data, revs, props, templates)
 
     def diff(self, *args, **kwargs):

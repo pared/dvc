@@ -1,6 +1,6 @@
 import csv
 import io
-import json
+import logging
 import os
 from collections import OrderedDict
 from copy import copy
@@ -8,7 +8,9 @@ from copy import copy
 from funcy import first
 
 from dvc.exceptions import DvcException
-from dvc.utils.serialize import loads_yaml
+from dvc.utils.serialize import ParseError, parse_json, parse_yaml
+
+logger = logging.getLogger(__name__)
 
 
 class PlotMetricTypeError(DvcException):
@@ -159,18 +161,31 @@ class PlotData:
         return [_filter_fields, _append_index, _append_revision]
 
     def to_datapoints(self, **kwargs):
-        data = self.raw(**kwargs)
-
-        for data_proc in self._processors():
-            data = data_proc(
-                data, filename=self.filename, revision=self.revision, **kwargs
+        try:
+            data = self.raw(**kwargs)
+            for data_proc in self._processors():
+                data = data_proc(
+                    data,
+                    filename=self.filename,
+                    revision=self.revision,
+                    **kwargs,
+                )
+            return data
+        except (ParseError, csv.Error):
+            logger.debug(
+                "failed to read '%s' on '%s'",
+                self.filename,
+                self.revision,
+                exc_info=True,
             )
-        return data
+            raise
 
 
 class JSONPlotData(PlotData):
     def raw(self, **kwargs):
-        return json.loads(self.content, object_pairs_hook=OrderedDict)
+        return parse_json(
+            self.content, self.filename, object_pairs_hook=OrderedDict
+        )
 
     def _processors(self):
         parent_processors = super()._processors()
@@ -207,7 +222,7 @@ class CSVPlotData(PlotData):
 
 class YAMLPlotData(PlotData):
     def raw(self, **kwargs):
-        return loads_yaml(self.content, typ="rt")
+        return parse_yaml(self.content, self.filename, typ="rt")
 
     def _processors(self):
         parent_processors = super()._processors()
