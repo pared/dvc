@@ -675,3 +675,13 @@ def test_show_no_repo(tmp_dir):
     dvc = Repo(uninitialized=True)
 
     dvc.plots.show(["metric.json"])
+
+
+def test_diff_no_file_on_target_rev(tmp_dir, scm, dvc, caplog):
+    with tmp_dir.branch("new_branch", new=True):
+        _write_json(tmp_dir, [{"m": 1}, {"m": 2}], "metric.json")
+
+        with caplog.at_level(logging.WARNING, "dvc"):
+            dvc.plots.diff(targets=["metric.json"], revs=["master"])
+
+    assert "'metric.json' was not found at: 'master'." in caplog.text

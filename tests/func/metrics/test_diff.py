@@ -209,3 +209,13 @@ def test_metrics_diff_non_metrics(tmp_dir, scm, dvc):
     assert result == {
         "some_file.yaml": {"foo": {"old": 1, "new": 3, "diff": 2}}
     }
+
+
+def test_diff_no_file_on_target_rev(tmp_dir, scm, dvc, caplog):
+    with tmp_dir.branch("new_branch", new=True):
+        tmp_dir.gen("metrics.json", '{"foo": 0}')
+
+        with caplog.at_level(logging.WARNING, "dvc"):
+            dvc.metrics.diff(targets=["metric.json"], a_rev="master")
+
+    assert "'metric.json' was not found at: 'master'." in caplog.text

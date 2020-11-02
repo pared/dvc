@@ -1,3 +1,6 @@
+import logging
+
+
 def test_diff_no_params(tmp_dir, scm, dvc):
     assert dvc.params.diff() == {}
 
@@ -144,3 +147,13 @@ def test_no_commits(tmp_dir):
     assert Git().no_commits
 
     assert Repo.init().params.diff() == {}
+
+
+def test_diff_no_file_on_target_rev(tmp_dir, scm, dvc, caplog):
+    with tmp_dir.branch("new_branch", new=True):
+        tmp_dir.gen("params.yaml", "foo: 0")
+
+        with caplog.at_level(logging.WARNING, "dvc"):
+            dvc.params.diff(a_rev="master")
+
+    assert "'params.json' was not found at: 'master'." in caplog.text
