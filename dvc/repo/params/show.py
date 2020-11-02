@@ -19,10 +19,12 @@ def _is_params(dep):
 
 
 def _collect_configs(repo, rev):
-    params, _ = collect(repo, deps=True, output_filter=_is_params, rev=rev)
-    configs = {p.path_info for p in params}
-    configs.add(PathInfo(repo.root_dir) / ParamsDependency.DEFAULT_PARAMS_FILE)
-    return list(configs)
+    targets = [PathInfo(repo.root_dir) / ParamsDependency.DEFAULT_PARAMS_FILE]
+    params, path_infos = collect(
+        repo, targets=targets, deps=True, output_filter=_is_params, rev=rev
+    )
+
+    return [p.path_info for p in params] + list(path_infos)
 
 
 def _read_params(repo, configs, rev):

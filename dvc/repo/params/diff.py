@@ -1,7 +1,11 @@
+import logging
+
 from dvc.utils.diff import diff as _diff
 from dvc.utils.diff import format_dict
 
 from .show import NoParamsError
+
+logger = logging.getLogger(__name__)
 
 
 def _get_params(repo, *args, rev=None, **kwargs):

@@ -2,7 +2,7 @@ import logging
 
 from dvc.exceptions import NoMetricsError
 from dvc.repo import locked
-from dvc.repo.collect import collect
+from dvc.repo.collect import collect, filter_targeted_outs
 from dvc.scm.base import SCMError
 from dvc.tree.repo import RepoTree
 from dvc.utils.serialize import YAMLFileCorruptedError, load_yaml
@@ -15,12 +15,14 @@ def _is_metric(out):
 
 
 def _collect_metrics(repo, targets, revision, recursive):
-    metrics, path_infos = collect(
-        repo,
-        targets=targets,
-        output_filter=_is_metric,
-        recursive=recursive,
-        rev=revision,
+    metrics, path_infos = filter_targeted_outs(
+        *collect(
+            repo,
+            targets=targets,
+            output_filter=_is_metric,
+            recursive=recursive,
+            rev=revision,
+        )
     )
     return [m.path_info for m in metrics] + list(path_infos)
 

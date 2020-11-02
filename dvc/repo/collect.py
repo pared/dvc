@@ -42,7 +42,10 @@ def _collect_paths(
     return target_infos
 
 
-def _filter_duplicates(outs: Iterable, path_infos: Iterable):
+def filter_targeted_outs(outs: Iterable, path_infos: Iterable):
+    if not path_infos:
+        return outs, set()
+
     res_outs = set()
     res_infos = set(path_infos)
 
@@ -71,4 +74,4 @@ def collect(
 
     target_infos = _collect_paths(repo, targets, recursive=recursive, rev=rev)
 
-    return _filter_duplicates(outs, target_infos)
+    return outs, target_infos

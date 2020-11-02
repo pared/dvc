@@ -3,7 +3,7 @@ import logging
 from funcy import cached_property, first, project
 
 from dvc.exceptions import DvcException, NoPlotsError
-from dvc.repo.collect import collect
+from dvc.repo.collect import collect, filter_targeted_outs
 from dvc.schema import PLOT_PROPS
 from dvc.tree.repo import RepoTree
 from dvc.utils import relpath
@@ -154,8 +154,8 @@ def _is_plot(out):
 
 
 def _collect_plots(repo, targets=None, rev=None):
-    plots, path_infos = collect(
-        repo, output_filter=_is_plot, targets=targets, rev=rev
+    plots, path_infos = filter_targeted_outs(
+        *collect(repo, output_filter=_is_plot, targets=targets, rev=rev)
     )
     result = {plot.path_info: _plot_props(plot) for plot in plots}
     result.update({path_info: {} for path_info in path_infos})

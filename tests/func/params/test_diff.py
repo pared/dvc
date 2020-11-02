@@ -149,11 +149,13 @@ def test_no_commits(tmp_dir):
     assert Repo.init().params.diff() == {}
 
 
-def test_diff_no_file_on_target_rev(tmp_dir, scm, dvc, caplog):
+def test_diff_no_file_on_target_rev(tmp_dir, scm, dvc, caplog, run_copy):
     with tmp_dir.branch("new_branch", new=True):
         tmp_dir.gen("params.yaml", "foo: 0")
 
         with caplog.at_level(logging.WARNING, "dvc"):
+            tmp_dir.gen({"foo": "foo", "params.yaml": "foo: bar"})
+            run_copy("foo", "bar", name="copy-foo-bar", params=["foo"])
             dvc.params.diff(a_rev="master")
 
-    assert "'params.json' was not found at: 'master'." in caplog.text
+    assert "'params.yaml' was not found at: 'master'." in caplog.text
