@@ -53,6 +53,8 @@ def cmd_run(stage, *args, checkpoint_func=None, **kwargs):
         # indicate that checkpoint cmd is being run inside DVC
         kwargs["env"].update(_checkpoint_env(stage))
 
+    kwargs["env"].update(stage.environment)
+
     if os.name == "nt":
         kwargs["shell"] = True
         executable = None
